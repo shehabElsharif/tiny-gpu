@@ -16,10 +16,10 @@ module fetcher #(
     input reg [7:0] current_pc,
 
     // Program Memory
-    output reg mem_read_valid,
-    output reg [PROGRAM_MEM_ADDR_BITS-1:0] mem_read_address,
-    input reg mem_read_ready,
-    input reg [PROGRAM_MEM_DATA_BITS-1:0] mem_read_data,
+    output reg is_read_valid,
+    output reg [PROGRAM_MEM_ADDR_BITS-1:0] read_address,
+    input reg is_read_ready,
+    input reg [PROGRAM_MEM_DATA_BITS-1:0] read_data,
 
     // Fetcher Output
     output reg [2:0] fetcher_state,
@@ -32,8 +32,8 @@ module fetcher #(
     always @(posedge clk) begin
         if (reset) begin
             fetcher_state <= IDLE;
-            mem_read_valid <= 0;
-            mem_read_address <= 0;
+            is_read_valid <= 0;
+            read_address <= 0;
             instruction <= {PROGRAM_MEM_DATA_BITS{1'b0}};
         end else begin
             case (fetcher_state)
@@ -41,16 +41,16 @@ module fetcher #(
                     // Start fetching when core_state = FETCH
                     if (core_state == 3'b001) begin
                         fetcher_state <= FETCHING;
-                        mem_read_valid <= 1;
-                        mem_read_address <= current_pc;
+                        is_read_valid <= 1;
+                        read_address <= current_pc;
                     end
                 end
                 FETCHING: begin
                     // Wait for response from program memory
-                    if (mem_read_ready) begin
+                    if (is_read_ready) begin
                         fetcher_state <= FETCHED;
-                        instruction <= mem_read_data; // Store the instruction when received
-                        mem_read_valid <= 0;
+                        instruction <= read_data; // Store the instruction when received
+                        is_read_valid <= 0;
                     end
                 end
                 FETCHED: begin
